@@ -16,6 +16,7 @@ export default function Dashboard() {
   const { user } = useAuth()
   const [tab, setTab] = useState('Overview')
   const [dismissedAlerts, setDismissedAlerts] = useState(false)
+  const [dismissedBurnout, setDismissedBurnout] = useState(false)
   const navigate = useNavigate()
 
   if (loading) return <LoadingSpinner />
@@ -32,6 +33,7 @@ export default function Dashboard() {
   const activeRewards = data?.rewards?.filter(r => !r.isUsed && new Date(r.expiresAt) > new Date()) || []
   const usedRewards = data?.rewards?.filter(r => r.isUsed) || []
   const expiredRewards = data?.rewards?.filter(r => !r.isUsed && new Date(r.expiresAt) <= new Date()) || []
+  const lastMood = data?.last7Moods?.[0]
 
   return (
     <div className="space-y-6 max-w-5xl">
@@ -42,8 +44,8 @@ export default function Dashboard() {
         <p className="text-textSecondary mt-1">Here is your mental wellness overview</p>
       </div>
 
-      {/* Unread alert banner */}
-      {unreadAlerts.length > 0 && !dismissedAlerts && (
+      {/* Admin alert banner — only for non-admin users */}
+      {user?.role !== 'admin' && unreadAlerts.length > 0 && !dismissedAlerts && (
         <div className="rounded-2xl bg-gradient-to-r from-primary/10 to-secondary/10 border border-primary/20 p-4">
           <div className="flex items-start justify-between gap-3">
             <div className="space-y-1">
@@ -66,11 +68,13 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Burnout banner */}
-      {data?.burnoutRisk && <BurnoutBanner />}
+      {/* Burnout banner — only once, only for non-admin, dismissable */}
+      {user?.role !== 'admin' && data?.burnoutRisk && !dismissedBurnout && (
+        <BurnoutBanner onDismiss={() => setDismissedBurnout(true)} />
+      )}
 
-      {/* Mood reminder */}
-      {!data?.loggedToday && (
+      {/* Mood reminder — only for non-admin */}
+      {user?.role !== 'admin' && !data?.loggedToday && (
         <div className="rounded-2xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-4 flex items-center justify-between">
           <div>
             <h4 className="font-display font-bold text-amber-700 dark:text-amber-400 text-sm">
@@ -80,24 +84,30 @@ export default function Dashboard() {
               Log your daily mood to keep your streak and improve your wellness score.
             </p>
           </div>
-          <button
-            onClick={() => navigate('/mood')}
-            className="btn-primary text-sm flex-shrink-0"
-          >
+          <button onClick={() => navigate('/mood')} className="btn-primary text-sm flex-shrink-0">
             Log Mood
           </button>
         </div>
       )}
 
-      {/* Stat cards */}
+      {/* Stat cards — XP, Streak, Rewards */}
       <div className="grid grid-cols-3 gap-4">
-        <StatCard label="XP Earned" value={data?.xp} icon={null} iconText="XP" sub={`Level ${data?.level}`} color="primary" />
-        <StatCard label="Day Streak" value={`${data?.streak} days`} iconText="streak" sub="Keep it going" color="secondary" />
+        <StatCard
+          label="XP Earned"
+          value={data?.xp}
+          sub={`Level ${data?.level}`}
+          color="primary"
+        />
+        <StatCard
+          label="Day Streak"
+          value={`${data?.streak} days`}
+          sub="Keep it going"
+          color="secondary"
+        />
         <StatCard
           label="Active Rewards"
           value={activeRewards.length}
-          iconText="rewards"
-          sub={activeRewards.length > 0 ? 'Tap Rewards tab to view' : 'Complete quests to earn'}
+          sub={activeRewards.length > 0 ? 'Tap Rewards tab to view' : 'Level up to earn coupons'}
           color={activeRewards.length > 0 ? 'accent' : 'primary'}
         />
       </div>
@@ -134,7 +144,9 @@ export default function Dashboard() {
       {tab === 'Mood History' && (
         <div className="card">
           {data?.last7Moods?.length === 0 ? (
-            <p className="text-textSecondary text-center py-8">No mood entries yet. Log your first mood to get started.</p>
+            <p className="text-textSecondary text-center py-8">
+              No mood entries yet. Log your first mood to get started.
+            </p>
           ) : (
             <div className="space-y-0">
               {data.last7Moods.map((mood) => (
@@ -174,7 +186,9 @@ export default function Dashboard() {
           {data?.rewards?.length === 0 ? (
             <div className="card text-center py-12">
               <p className="font-display font-bold text-textPrimary dark:text-white mb-2">No rewards yet</p>
-              <p className="text-sm text-textSecondary">Complete quests and level up to earn discount coupons from our wellness partners.</p>
+              <p className="text-sm text-textSecondary">
+                Complete quests and level up to earn discount coupons from our wellness partners.
+              </p>
             </div>
           ) : (
             <>
@@ -190,7 +204,6 @@ export default function Dashboard() {
                   </div>
                 </div>
               )}
-
               {usedRewards.length > 0 && (
                 <div>
                   <h3 className="font-display font-semibold text-textSecondary mb-3 text-sm uppercase tracking-widest">
@@ -203,7 +216,6 @@ export default function Dashboard() {
                   </div>
                 </div>
               )}
-
               {expiredRewards.length > 0 && (
                 <div>
                   <h3 className="font-display font-semibold text-textSecondary mb-3 text-sm uppercase tracking-widest">
@@ -247,9 +259,11 @@ function RewardCard({ reward, status }) {
           <p className="text-xs text-textSecondary mt-0.5">{reward.partner}</p>
         </div>
         <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
-          status === 'active' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
-          status === 'used' ? 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400' :
-          'bg-red-100 text-red-500 dark:bg-red-900/30 dark:text-red-400'
+          status === 'active'
+            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+            : status === 'used'
+            ? 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400'
+            : 'bg-red-100 text-red-500 dark:bg-red-900/30 dark:text-red-400'
         }`}>
           {status.charAt(0).toUpperCase() + status.slice(1)}
         </span>

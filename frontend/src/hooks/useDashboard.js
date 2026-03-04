@@ -9,6 +9,7 @@ export const useDashboard = () => {
   const fetch = async () => {
     try {
       setLoading(true)
+      setError(null)
       const res = await getDashboard()
       setData(res.data.dashboard)
     } catch (err) {
