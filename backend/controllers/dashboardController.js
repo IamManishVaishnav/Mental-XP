@@ -1,6 +1,7 @@
 const User = require('../models/User')
 const MoodLog = require('../models/MoodLog')
 const QuestLog = require('../models/QuestLog')
+const UserCoupon = require('../models/UserCoupon')
 const { asyncHandler } = require('../middleware/errorMiddleware')
 
 const getDashboard = asyncHandler(async (req, res) => {
@@ -15,7 +16,6 @@ const getDashboard = asyncHandler(async (req, res) => {
     .limit(5)
 
   let burnoutRisk = false
-
   if (last5Moods.length >= 5) {
     const avgMood = last5Moods.reduce((sum, m) => sum + m.moodScore, 0) / last5Moods.length
     if (avgMood < 4) burnoutRisk = true
@@ -31,7 +31,14 @@ const getDashboard = asyncHandler(async (req, res) => {
     if (!recentQuest) burnoutRisk = true
   }
 
+  const today = new Date().toISOString().split('T')[0]
+  const loggedToday = await MoodLog.findOne({ userId: user._id, loggedDate: today })
+
+  const rewards = await UserCoupon.find({ userId: user._id })
+    .sort({ earnedAt: -1 })
+
   const unreadAlerts = (user.alerts || []).filter(a => !a.read)
+  const xpForNextLevel = user.level * 100
 
   res.json({
     success: true,
@@ -39,10 +46,13 @@ const getDashboard = asyncHandler(async (req, res) => {
       xp: user.xp,
       level: user.level,
       streak: user.streak,
+      xpForNextLevel,
       last7Moods,
       burnoutRisk,
+      loggedToday: !!loggedToday,
       alerts: user.alerts || [],
       unreadAlertCount: unreadAlerts.length,
+      rewards,
     },
   })
 })

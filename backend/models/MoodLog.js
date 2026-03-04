@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
 
 const moodLogSchema = new mongoose.Schema(
   {
@@ -13,18 +13,13 @@ const moodLogSchema = new mongoose.Schema(
       min: [1, 'Mood score must be at least 1'],
       max: [10, 'Mood score must be at most 10'],
     },
-    text: {
-      type: String,
-      trim: true,
-      default: '',
-    },
-    sentiment: {
-      type: String,
-      trim: true,
-      default: '',
-    },
+    text: { type: String, trim: true, default: '' },
+    sentiment: { type: String, trim: true, default: '' },
+    loggedDate: { type: String, required: true },
   },
   { timestamps: true }
-);
+)
 
-module.exports = mongoose.model('MoodLog', moodLogSchema);
+moodLogSchema.index({ userId: 1, loggedDate: 1 }, { unique: true })
+
+module.exports = mongoose.model('MoodLog', moodLogSchema)

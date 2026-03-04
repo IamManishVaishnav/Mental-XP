@@ -1,14 +1,15 @@
 const calculateXP = (user, xpToAdd) => {
-  let { xp, level } = user;
+  let { xp, level } = user
+  const previousLevel = level
 
-  xp += xpToAdd;
+  xp += xpToAdd
 
   while (xp >= level * 100) {
-    xp -= level * 100;
-    level += 1;
+    xp -= level * 100
+    level += 1
   }
 
-  return { xp, level };
-};
+  return { xp, level, previousLevel, leveledUp: level > previousLevel }
+}
 
-module.exports = { calculateXP };
+module.exports = { calculateXP }
