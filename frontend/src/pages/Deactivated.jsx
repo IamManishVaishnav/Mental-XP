@@ -1,31 +1,21 @@
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
 
 export default function Deactivated() {
-  const { logout } = useAuth()
   const navigate = useNavigate()
-
-  const handleLogout = () => {
-    localStorage.removeItem('deactivated')
-    logout()
-    navigate('/login')
-  }
-
   return (
-    <div className="min-h-screen bg-surface dark:bg-dark flex items-center justify-center px-4">
-      <div className="card max-w-md w-full text-center space-y-5">
-        <div className="text-6xl">🔒</div>
-        <h1 className="font-display font-bold text-2xl text-textPrimary dark:text-white">
-          Account Deactivated
-        </h1>
-        <p className="text-textSecondary">
-          Your account has been deactivated by an administrator. Please contact your manager or HR team for assistance.
-        </p>
-        <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl text-sm text-amber-700 dark:text-amber-400">
-          If you believe this is a mistake, reach out to your admin to reactivate your account.
+    <div className="min-h-screen bg-[var(--cream)] flex items-center justify-center px-4">
+      <div className="card max-w-sm w-full text-center space-y-4 shadow-lifted animate-scale-in">
+        <div className="w-14 h-14 rounded-2xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mx-auto">
+          <span className="text-2xl">🔒</span>
         </div>
-        <button onClick={handleLogout} className="btn-primary w-full">
-          Back to Login
+        <div>
+          <h2 className="font-display font-semibold text-2xl text-[var(--ink)]">Account Paused</h2>
+          <p className="text-ink-muted text-sm mt-1.5 leading-relaxed">
+            Your account has been temporarily deactivated. Please reach out to your admin if you think this is a mistake.
+          </p>
+        </div>
+        <button onClick={() => { localStorage.clear(); navigate('/login') }} className="btn-secondary w-full">
+          Back to sign in
         </button>
       </div>
     </div>

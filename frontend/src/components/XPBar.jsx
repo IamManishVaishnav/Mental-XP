@@ -1,62 +1,77 @@
+import { useEffect, useRef } from 'react'
 import { getLevelProgress } from '../utils/xpUtils'
 
-const MILESTONE_REWARDS = {
-  5: '15% off Headspace',
-  10: '20% off BetterHelp',
-  15: '25% off Mindvalley',
-  20: '30% off Noom',
-}
+const MILESTONES = { 5: '15% off Headspace', 10: '20% off BetterHelp', 15: '25% off Mindvalley', 20: '30% off Noom' }
 
-export default function XPBar({ xp, level, rewards = [] }) {
+export default function XPBar({ xp = 0, level = 1, rewards = [] }) {
+  const barRef = useRef(null)
   const progress = getLevelProgress(xp, level)
   const required = level * 100
   const nextMilestone = [5, 10, 15, 20].find(m => m > level)
-  const nextMilestoneReward = MILESTONE_REWARDS[nextMilestone]
   const unusedCoupons = rewards.filter(r => !r.isUsed && new Date(r.expiresAt) > new Date())
 
+  useEffect(() => {
+    if (barRef.current) {
+      barRef.current.style.setProperty('--bar-width', `${progress}%`)
+      barRef.current.style.width = `${progress}%`
+    }
+  }, [progress])
+
   return (
-    <div className="card space-y-4">
-      <div className="flex items-center justify-between">
+    <div className="card animate-fade-up">
+      <div className="flex items-center justify-between mb-4">
+        {/* Level badge */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-            <span className="text-white font-display font-bold text-sm">L{level}</span>
+          <div className="w-11 h-11 rounded-2xl bg-forest-500 flex items-center justify-center shadow-sm">
+            <span className="font-display font-semibold text-white text-sm">L{level}</span>
           </div>
           <div>
-            <p className="font-display font-bold text-textPrimary dark:text-white">Level {level}</p>
-            <p className="text-xs text-textSecondary">{xp} / {required} XP</p>
+            <p className="font-semibold text-[var(--ink)] text-sm">Level {level}</p>
+            <p className="text-2xs text-ink-muted">{xp} / {required} XP to next level</p>
           </div>
         </div>
+        {/* Progress % */}
         <div className="text-right">
-          <p className="text-2xl font-display font-bold text-primary">{progress}%</p>
-          <p className="text-xs text-textSecondary">{required - xp} XP to next level</p>
+          <p className="font-display text-2xl font-semibold text-forest-600 dark:text-forest-400">{progress}%</p>
+          <p className="text-2xs text-ink-muted">{required - xp} XP remaining</p>
         </div>
       </div>
 
-      <div className="h-3 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+      {/* Progress bar */}
+      <div className="relative h-2.5 bg-ink-faint dark:bg-ink-faint/30 rounded-full overflow-hidden">
         <div
-          className="h-full bg-gradient-to-r from-primary to-secondary rounded-full transition-all duration-700"
-          style={{ width: `${progress}%` }}
+          ref={barRef}
+          className="h-full rounded-full transition-all duration-1000 ease-out"
+          style={{
+            width: `${progress}%`,
+            background: 'linear-gradient(90deg, #2D6A4F 0%, #52A07A 50%, #D97706 100%)',
+          }}
+        />
+        {/* Shimmer overlay */}
+        <div
+          className="absolute inset-0 rounded-full"
+          style={{
+            background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%)',
+            backgroundSize: '200% 100%',
+            animation: 'shimmer 2.5s linear infinite',
+            width: `${progress}%`,
+          }}
         />
       </div>
 
-      <div className="flex items-center justify-between pt-1">
+      {/* Bottom row */}
+      <div className="flex items-center justify-between mt-3 gap-2">
         {unusedCoupons.length > 0 ? (
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400">
-              {unusedCoupons.length} reward{unusedCoupons.length > 1 ? 's' : ''} available in Rewards tab
-            </p>
+          <div className="badge badge-forest">
+            <span>🎁</span>
+            {unusedCoupons.length} reward{unusedCoupons.length > 1 ? 's' : ''} ready
           </div>
-        ) : (
-          <div />
-        )}
+        ) : <div />}
+
         {nextMilestone && (
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/5 border border-primary/20 rounded-lg">
-            <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-            <p className="text-xs text-textSecondary">
-              Level {nextMilestone} unlocks{' '}
-              <span className="font-semibold text-primary">{nextMilestoneReward}</span>
-            </p>
+          <div className="badge badge-amber">
+            <span>✦</span>
+            Level {nextMilestone}: {MILESTONES[nextMilestone]}
           </div>
         )}
       </div>
