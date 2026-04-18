@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
 
 const userSchema = new mongoose.Schema(
   {
@@ -27,6 +27,7 @@ const userSchema = new mongoose.Schema(
       type: Number,
       default: 1,
     },
+    // Overall consecutive-day streak (any quest)
     streak: {
       type: Number,
       default: 0,
@@ -35,6 +36,16 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+
+    // Per-category streaks — track separate engagement per area
+    categoryStreaks: {
+      breathing: { streak: { type: Number, default: 0 }, lastDate: { type: Date, default: null } },
+      gratitude:  { streak: { type: Number, default: 0 }, lastDate: { type: Date, default: null } },
+      reframe:    { streak: { type: Number, default: 0 }, lastDate: { type: Date, default: null } },
+      grounding:  { streak: { type: Number, default: 0 }, lastDate: { type: Date, default: null } },
+      journal:    { streak: { type: Number, default: 0 }, lastDate: { type: Date, default: null } },
+    },
+
     role: {
       type: String,
       enum: ['user', 'admin'],
@@ -53,8 +64,6 @@ const userSchema = new mongoose.Schema(
     ],
   },
   { timestamps: true }
-);
+)
 
-
-
-module.exports = mongoose.model('User', userSchema);
+module.exports = mongoose.models.User || mongoose.model('User', userSchema)
