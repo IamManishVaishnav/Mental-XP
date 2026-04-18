@@ -122,5 +122,6 @@ export default function JournalEntry({ config, onComplete }) {
         </button>
       </div>
     </div>
-  )
+ 
+)
 }
