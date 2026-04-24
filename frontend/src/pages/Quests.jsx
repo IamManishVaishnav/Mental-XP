@@ -5,9 +5,9 @@ import { useNavigate } from 'react-router-dom'
 import LoadingSpinner from '../components/LoadingSpinner'
 import QuestShell from '../components/quests/QuestShell'
 import BreathingTimer from '../components/quests/Breathingtimer'
-import JournalEntry from '../components/quests/JournalEntry'
-import CBTForm from '../components/quests/CBTForm'
-import GroundingChecklist from '../components/quests/GroundingChecklist'
+import JournalEntry from '../components/quests/Journalentry'
+import CBTForm from '../components/quests/Cbtform'
+import GroundingChecklist from '../components/quests/Groundingchecklist'
 
 // ── Design tokens per category ──────────────────────────────────────────────
 const CATEGORIES = {
